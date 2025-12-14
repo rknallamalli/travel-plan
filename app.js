@@ -1107,12 +1107,12 @@ function confirmDeleteTrip() {
 // ===================================
 // INITIALIZE APP
 // ===================================
-let app;
+window.app = null;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new TravelPlanApp();
+    window.app = new TravelPlanApp();
 
     // Add some demo data if no trips exist
-    if (app.trips.length === 0) {
+    if (window.app.trips.length === 0) {
         addDemoTrip();
     }
 });

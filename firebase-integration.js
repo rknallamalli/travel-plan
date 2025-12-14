@@ -46,8 +46,13 @@ async function handleSignIn(event) {
 
     const result = await window.firebaseAuth.signInWithEmail(email, password);
     if (result.success) {
-        closeModal('auth-modal');
-        app.showNotification('Signed in successfully!');
+        // Close modal directly
+        const modal = document.getElementById('auth-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        if (window.app) app.showNotification('Signed in successfully!');
     } else {
         alert('Sign in failed: ' + result.error);
     }
@@ -67,8 +72,13 @@ async function handleSignUp(event) {
 
     const result = await window.firebaseAuth.signUpWithEmail(email, password, name);
     if (result.success) {
-        closeModal('auth-modal');
-        app.showNotification('Account created successfully!');
+        // Close modal directly
+        const modal = document.getElementById('auth-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        if (window.app) app.showNotification('Account created successfully!');
     } else {
         alert('Sign up failed: ' + result.error);
     }

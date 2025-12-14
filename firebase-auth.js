@@ -20,7 +20,8 @@ class FirebaseAuth {
 
             if (user) {
                 console.log('✓ User signed in:', user.email);
-                this.updateUserProfile(user);
+                // Skip profile update for now to avoid permissions error
+                // this.updateUserProfile(user);
             } else {
                 console.log('○ User signed out');
             }
