@@ -21,6 +21,30 @@ class TravelPlanApp {
     }
 
     // ===================================
+    // FIREBASE SYNC METHODS
+    // ===================================
+    enableFirebaseSync() {
+        console.log('✓ Firebase sync enabled');
+        this.useFirestore = true;
+
+        window.firebaseDB.listenToMyTrips((trips) => {
+            this.trips = trips;
+            this.renderTrips();
+            this.checkEmptyState();
+            if (window.updateSyncStatus) updateSyncStatus('synced');
+        });
+    }
+
+    disableFirebaseSync() {
+        console.log('○ Using LocalStorage mode');
+        this.useFirestore = false;
+        if (window.firebaseDB) window.firebaseDB.stopListening();
+        this.loadFromStorage();
+        this.renderTrips();
+        this.checkEmptyState();
+    }
+
+    // ===================================
     // OFFLINE SUPPORT
     // ===================================
     initializeOfflineSupport() {
