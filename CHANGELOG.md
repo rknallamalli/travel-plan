@@ -152,15 +152,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Version History
 
 - **1.0.0** (2025-12-14) - Initial release
-- [ ] Added Firebase authentication (Google & Email)
-- [ ] Real-time cloud sync with Firestore
-- [ ] Trip sharing and collaboration
-- [ ] Offline-first architecture maintained
-- [ ] User authentication UI
 
 ---
 
 **Repository**: https://github.com/rknallamalli/travel-plan  
 **Live Demo**: https://rknallamalli.github.io/travel-plan/  
 **License**: MIT
-
