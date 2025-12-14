@@ -355,17 +355,36 @@ class TravelPlanApp {
             });
         }
 
-        this.trips.push(trip);
-        this.saveToStorage();
-        this.renderTrips();
-        this.checkEmptyState();
+        // Check if user is signed in and use Firebase
+        if (this.useFirestore && window.firebaseAuth && window.firebaseAuth.isSignedIn()) {
+            // Save to Firebase
+            if (window.updateSyncStatus) updateSyncStatus('syncing');
+            window.firebaseDB.createTrip(trip).then(result => {
+                if (result.success) {
+                    if (window.updateSyncStatus) updateSyncStatus('synced');
+                    this.showNotification('Trip created and synced to cloud!');
+                } else {
+                    // Fallback to LocalStorage if Firebase fails
+                    this.trips.push(trip);
+                    this.saveToStorage();
+                    this.renderTrips();
+                    this.checkEmptyState();
+                    this.showNotification('Trip created (saved locally)');
+                }
+            });
+        } else {
+            // Save to LocalStorage only
+            this.trips.push(trip);
+            this.saveToStorage();
+            this.renderTrips();
+            this.checkEmptyState();
+            this.showNotification('Trip created successfully!');
+        }
+
         this.closeModal('create-trip-modal');
 
         // Reset form
         document.getElementById('create-trip-form').reset();
-
-        // Show success animation
-        this.showNotification('Trip created successfully!');
     }
 
     viewTrip(tripId) {
