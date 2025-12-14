@@ -131,7 +131,6 @@ class FirebaseDatabase {
 
         this.tripsListener = this.db.collection('trips')
             .where('ownerId', '==', userId)
-            .orderBy('updatedAt', 'desc')
             .onSnapshot(
                 (snapshot) => {
                     const trips = [];
@@ -166,7 +165,6 @@ class FirebaseDatabase {
 
         this.sharedTripsListener = this.db.collection('trips')
             .where('sharedWith', 'array-contains', userId)
-            .orderBy('updatedAt', 'desc')
             .onSnapshot(
                 (snapshot) => {
                     const trips = [];
