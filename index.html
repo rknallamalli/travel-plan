@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>TravelPlan - Your Ultimate Travel Planning Companion</title>
+    <meta name="description"
+        content="Plan your perfect trip offline. Create itineraries, track expenses, and explore the world - works without internet!">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- iOS Specific Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TravelPlan">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-192.png">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#161B22">
+    <meta name="msapplication-TileColor" content="#3B82F6">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                <span class="logo-text">TravelPlan</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-view="trips">My Trips</a>
+                <a href="#" class="nav-link" data-view="explore">Explore</a>
+                <a href="#" class="nav-link" data-view="shared">Shared</a>
+            </div>
+            <button class="btn btn-primary" id="create-trip-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New Trip
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Trips View -->
+        <section class="view active" id="trips-view">
+            <div class="view-header">
+                <h1 class="view-title">My Trips</h1>
+                <p class="view-subtitle">Plan, organize, and track all your adventures</p>
+            </div>
+
+            <div class="trips-grid" id="trips-grid">
+                <!-- Trips will be dynamically added here -->
+            </div>
+
+            <div class="empty-state" id="empty-trips">
+                <div class="empty-state-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </div>
+                <h2>No trips yet</h2>
+                <p>Start planning your next adventure by creating your first trip</p>
+                <button class="btn btn-primary btn-large" onclick="showCreateTripModal()">Create Your First
+                    Trip</button>
+            </div>
+        </section>
+
+        <!-- Trip Detail View -->
+        <section class="view" id="trip-detail-view">
+            <div class="trip-detail-container">
+                <!-- Trip Header -->
+                <div class="trip-header" id="trip-header">
+                    <button class="btn-back" onclick="showView('trips')">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                        Back to Trips
+                    </button>
+                    <div class="trip-header-content">
+                        <h1 class="trip-title" id="trip-detail-title">Trip Name</h1>
+                        <div class="trip-meta">
+                            <span class="trip-dates" id="trip-detail-dates">Dates</span>
+                            <span class="trip-budget" id="trip-detail-budget">Budget</span>
+                        </div>
+                    </div>
+                    <div class="trip-actions">
+                        <button class="btn btn-secondary" onclick="shareTrip()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Share
+                        </button>
+                        <button class="btn btn-secondary" onclick="editTrip()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Edit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Trip Content -->
+                <div class="trip-content">
+                    <!-- Sidebar with tabs -->
+                    <div class="trip-sidebar">
+                        <div class="trip-tabs">
+                            <button class="trip-tab active" data-tab="itinerary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Itinerary
+                            </button>
+                            <button class="trip-tab" data-tab="map">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                                </svg>
+                                Map
+                            </button>
+                            <button class="trip-tab" data-tab="expenses">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                                Expenses
+                            </button>
+                            <button class="trip-tab" data-tab="notes">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                Notes
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main content area -->
+                    <div class="trip-main">
+                        <!-- Itinerary Tab -->
+                        <div class="tab-content active" id="itinerary-tab">
+                            <div class="tab-header">
+                                <h2>Itinerary</h2>
+                                <button class="btn btn-primary" onclick="addDay()">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    Add Day
+                                </button>
+                            </div>
+                            <div class="itinerary-timeline" id="itinerary-timeline">
+                                <!-- Days will be added here -->
+                            </div>
+                        </div>
+
+                        <!-- Map Tab -->
+                        <div class="tab-content" id="map-tab">
+                            <div class="tab-header">
+                                <h2>Trip Map</h2>
+                                <div class="map-controls">
+                                    <button class="btn btn-secondary btn-sm" onclick="centerMap()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                                        </svg>
+                                        Center Map
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="map-container">
+                                <div id="trip-map" style="height: 100%; width: 100%; border-radius: var(--radius-lg);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expenses Tab -->
+                        <div class="tab-content" id="expenses-tab">
+                            <div class="tab-header">
+                                <h2>Expenses</h2>
+                                <button class="btn btn-primary" onclick="addExpense()">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    Add Expense
+                                </button>
+                            </div>
+                            <div class="expense-summary">
+                                <div class="expense-card">
+                                    <div class="expense-label">Total Budget</div>
+                                    <div class="expense-amount" id="total-budget">$0</div>
+                                </div>
+                                <div class="expense-card">
+                                    <div class="expense-label">Total Spent</div>
+                                    <div class="expense-amount spent" id="total-spent">$0</div>
+                                </div>
+                                <div class="expense-card">
+                                    <div class="expense-label">Remaining</div>
+                                    <div class="expense-amount remaining" id="remaining-budget">$0</div>
+                                </div>
+                            </div>
+                            <div class="expenses-list" id="expenses-list">
+                                <!-- Expenses will be added here -->
+                            </div>
+                        </div>
+
+                        <!-- Notes Tab -->
+                        <div class="tab-content" id="notes-tab">
+                            <div class="tab-header">
+                                <h2>Trip Notes</h2>
+                            </div>
+                            <textarea class="notes-editor" id="trip-notes"
+                                placeholder="Add your trip notes, ideas, and important information here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Create Trip Modal -->
+    <div class="modal" id="create-trip-modal">
+        <div class="modal-overlay" onclick="closeModal('create-trip-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Trip</h2>
+                <button class="modal-close" onclick="closeModal('create-trip-modal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modal-body" id="create-trip-form">
+                <div class="form-group">
+                    <label for="trip-name">Trip Name</label>
+                    <input type="text" id="trip-name" class="form-input" placeholder="e.g., Summer in Europe" required>
+                </div>
+                <div class="form-group">
+                    <label for="trip-destination">Destination</label>
+                    <input type="text" id="trip-destination" class="form-input" placeholder="e.g., Paris, France"
+                        required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="trip-start-date">Start Date</label>
+                        <input type="date" id="trip-start-date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trip-end-date">End Date</label>
+                        <input type="date" id="trip-end-date" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="trip-budget">Budget (optional)</label>
+                    <input type="number" id="trip-budget" class="form-input" placeholder="e.g., 5000" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="trip-description">Description (optional)</label>
+                    <textarea id="trip-description" class="form-input" rows="3"
+                        placeholder="What's this trip about?"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('create-trip-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Trip</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Activity Modal -->
+    <div class="modal" id="add-activity-modal">
+        <div class="modal-overlay" onclick="closeModal('add-activity-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Activity</h2>
+                <button class="modal-close" onclick="closeModal('add-activity-modal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modal-body" id="add-activity-form">
+                <div class="form-group">
+                    <label for="activity-name">Activity Name</label>
+                    <input type="text" id="activity-name" class="form-input" placeholder="e.g., Visit Eiffel Tower"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="activity-type">Type</label>
+                    <select id="activity-type" class="form-input">
+                        <option value="attraction">Attraction</option>
+                        <option value="restaurant">Restaurant</option>
+                        <option value="accommodation">Accommodation</option>
+                        <option value="transport">Transport</option>
+                        <option value="activity">Activity</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="activity-time">Time</label>
+                        <input type="time" id="activity-time" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="activity-duration">Duration (hours)</label>
+                        <input type="number" id="activity-duration" class="form-input" placeholder="2" min="0"
+                            step="0.5">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="activity-location">Location</label>
+                    <input type="text" id="activity-location" class="form-input" placeholder="Address or place name">
+                </div>
+                <div class="form-group">
+                    <label for="activity-notes">Notes</label>
+                    <textarea id="activity-notes" class="form-input" rows="3"
+                        placeholder="Any additional details..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('add-activity-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal" id="add-expense-modal">
+        <div class="modal-overlay" onclick="closeModal('add-expense-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Expense</h2>
+                <button class="modal-close" onclick="closeModal('add-expense-modal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modal-body" id="add-expense-form">
+                <div class="form-group">
+                    <label for="expense-name">Description</label>
+                    <input type="text" id="expense-name" class="form-input" placeholder="e.g., Hotel booking" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expense-amount">Amount</label>
+                        <input type="number" id="expense-amount" class="form-input" placeholder="100" min="0"
+                            step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-category">Category</label>
+                        <select id="expense-category" class="form-input">
+                            <option value="accommodation">Accommodation</option>
+                            <option value="food">Food & Drinks</option>
+                            <option value="transport">Transport</option>
+                            <option value="activities">Activities</option>
+                            <option value="shopping">Shopping</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="expense-date">Date</label>
+                    <input type="date" id="expense-date" class="form-input" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('add-expense-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Trip Modal -->
+    <div class="modal" id="edit-trip-modal">
+        <div class="modal-overlay" onclick="closeModal('edit-trip-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Trip</h2>
+                <button class="modal-close" onclick="closeModal('edit-trip-modal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form class="modal-body" id="edit-trip-form">
+                <div class="form-group">
+                    <label for="edit-trip-name">Trip Name</label>
+                    <input type="text" id="edit-trip-name" class="form-input" placeholder="e.g., Summer in Europe"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-trip-destination">Destination</label>
+                    <input type="text" id="edit-trip-destination" class="form-input" placeholder="e.g., Paris, France"
+                        required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-trip-start-date">Start Date</label>
+                        <input type="date" id="edit-trip-start-date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-trip-end-date">End Date</label>
+                        <input type="date" id="edit-trip-end-date" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-trip-budget">Budget (optional)</label>
+                    <input type="number" id="edit-trip-budget" class="form-input" placeholder="e.g., 5000" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="edit-trip-description">Description (optional)</label>
+                    <textarea id="edit-trip-description" class="form-input" rows="3"
+                        placeholder="What's this trip about?"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('edit-trip-modal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary" onclick="confirmDeleteTrip()"
+                        style="margin-right: auto; background: var(--color-error); border-color: var(--color-error);">Delete
+                        Trip</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
