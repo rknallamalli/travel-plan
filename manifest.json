@@ -2,7 +2,7 @@
   "name": "TravelPlan - Offline Travel Planner",
   "short_name": "TravelPlan",
   "description": "Plan your perfect trip offline. Create itineraries, track expenses, and explore the world.",
-  "start_url": "/index.html",
+  "start_url": "/travel-plan/",
   "display": "standalone",
   "background_color": "#161B22",
   "theme_color": "#3B82F6",
@@ -21,7 +21,11 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["travel", "productivity", "lifestyle"],
+  "categories": [
+    "travel",
+    "productivity",
+    "lifestyle"
+  ],
   "screenshots": [
     {
       "src": "screenshot-mobile.png",
@@ -35,7 +39,7 @@
       "name": "New Trip",
       "short_name": "New Trip",
       "description": "Create a new trip",
-      "url": "/index.html?action=new",
+      "url": "/travel-plan/?action=new",
       "icons": [
         {
           "src": "icon-192.png",

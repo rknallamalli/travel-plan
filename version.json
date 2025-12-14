@@ -1,0 +1,69 @@
+{
+    "name": "TravelPlan",
+    "version": "1.0.0",
+    "description": "Offline-first Progressive Web App for travel planning on iPhone",
+    "author": "Ramakrishna Nallamalli",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rknallamalli/travel-plan.git"
+    },
+    "homepage": "https://rknallamalli.github.io/travel-plan/",
+    "keywords": [
+        "travel",
+        "planning",
+        "pwa",
+        "offline",
+        "iphone",
+        "itinerary",
+        "expense-tracking"
+    ],
+    "features": [
+        "Offline-first Progressive Web App",
+        "Trip management and itinerary planning",
+        "Interactive maps with offline caching",
+        "Expense tracking and budget management",
+        "Works completely offline on iPhone",
+        "Service worker for offline support",
+        "Local storage for data persistence"
+    ],
+    "technologies": {
+        "frontend": "Vanilla JavaScript (ES6+)",
+        "styling": "CSS3 with custom properties",
+        "maps": "Leaflet.js with OpenStreetMap",
+        "storage": "LocalStorage + Service Worker Cache",
+        "pwa": "Service Worker + Web App Manifest"
+    },
+    "browser_support": {
+        "ios_safari": "11.3+",
+        "chrome": "90+",
+        "firefox": "88+",
+        "safari": "14+",
+        "edge": "90+"
+    },
+    "release_date": "2025-12-14",
+    "changelog": {
+        "1.0.0": {
+            "date": "2025-12-14",
+            "changes": [
+                "Initial release",
+                "Trip creation and management",
+                "Day-by-day itinerary planning",
+                "Activity tracking with locations",
+                "Interactive maps with Leaflet.js",
+                "Offline map tile caching",
+                "Expense tracking by category",
+                "Trip notes editor",
+                "Progressive Web App support",
+                "Service Worker for offline functionality",
+                "iPhone home screen installation",
+                "Offline indicator and status",
+                "Auto-save functionality",
+                "Edit and delete trips",
+                "Geocoding with Nominatim API",
+                "Dark theme design",
+                "Responsive layout for all devices"
+            ]
+        }
+    }
+}

@@ -1,0 +1,43 @@
+# TravelPlan v1.0.0 - Manual Deployment Commands
+
+## Step 1: Initialize Git and Configure
+git init
+git config user.name "Ramakrishna Nallamalli"
+git config user.email "your.email@example.com"
+
+## Step 2: Add Remote Repository
+git remote add origin https://github.com/rknallamalli/travel-plan.git
+
+## Step 3: Stage All Files
+git add .
+
+## Step 4: Commit with Version Message
+git commit -m "Release v1.0.0 - Initial TravelPlan PWA
+
+Features:
+- Trip management (create, edit, delete)
+- Day-by-day itinerary planning  
+- Interactive maps with Leaflet.js
+- Offline map tile caching
+- Expense tracking by category
+- Trip notes with auto-save
+- Progressive Web App support
+- Service Worker for offline functionality
+- iPhone home screen installation
+- Complete offline support
+- Dark theme design
+- Responsive layout"
+
+## Step 5: Create Version Tag
+git tag -a v1.0.0 -m "Version 1.0.0 - Initial Release"
+
+## Step 6: Set Main Branch
+git branch -M main
+
+## Step 7: Push to GitHub
+git push -u origin main
+git push origin --tags
+
+## Done!
+# Your app is now on GitHub
+# Next: Enable GitHub Pages at https://github.com/rknallamalli/travel-plan/settings/pages
