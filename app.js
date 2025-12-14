@@ -27,11 +27,39 @@ class TravelPlanApp {
         console.log('✓ Firebase sync enabled');
         this.useFirestore = true;
 
-        window.firebaseDB.listenToMyTrips((trips) => {
-            this.trips = trips;
+        // Store trips from different sources
+        this.ownedTrips = [];
+        this.sharedTrips = [];
+
+        // Update main trips array and render
+        const updateAllTrips = () => {
+            // Merge and remove duplicates based on ID
+            const allTripsMap = new Map();
+            [...this.ownedTrips, ...this.sharedTrips].forEach(t => allTripsMap.set(t.id, t));
+            this.trips = Array.from(allTripsMap.values());
+
+            // Sort by update time
+            this.trips.sort((a, b) => { // Sort descending (newest first)
+                const dateA = a.updatedAt ? (a.updatedAt.seconds ? a.updatedAt.seconds * 1000 : new Date(a.updatedAt)) : 0;
+                const dateB = b.updatedAt ? (b.updatedAt.seconds ? b.updatedAt.seconds * 1000 : new Date(b.updatedAt)) : 0;
+                return dateB - dateA;
+            });
+
             this.renderTrips();
             this.checkEmptyState();
             if (window.updateSyncStatus) updateSyncStatus('synced');
+        };
+
+        window.firebaseDB.listenToMyTrips((trips) => {
+            console.log('Got owned trips:', trips.length);
+            this.ownedTrips = trips;
+            updateAllTrips();
+        });
+
+        window.firebaseDB.listenToSharedTrips((trips) => {
+            console.log('Got shared trips:', trips.length);
+            this.sharedTrips = trips;
+            updateAllTrips();
         });
     }
 
@@ -356,23 +384,40 @@ class TravelPlanApp {
         }
 
         // Check if user is signed in and use Firebase
-        if (this.useFirestore && window.firebaseAuth && window.firebaseAuth.isSignedIn()) {
+        const isAuth = window.firebaseAuth && window.firebaseAuth.isSignedIn();
+        const hasDB = !!window.firebaseDB;
+        console.log(`Creating trip. Auth: ${isAuth}, DB: ${hasDB}`);
+
+        if (isAuth && hasDB) {
             // Save to Firebase
+            console.log('Attempting to save trip to Firebase...');
             if (window.updateSyncStatus) updateSyncStatus('syncing');
+
             window.firebaseDB.createTrip(trip).then(result => {
                 if (result.success) {
+                    console.log('✓ Trip successfully created in Firebase:', result.tripId);
                     if (window.updateSyncStatus) updateSyncStatus('synced');
                     this.showNotification('Trip created and synced to cloud!');
                 } else {
+                    console.error('✗ Failed to create trip in Firebase:', result.error);
                     // Fallback to LocalStorage if Firebase fails
                     this.trips.push(trip);
                     this.saveToStorage();
                     this.renderTrips();
                     this.checkEmptyState();
-                    this.showNotification('Trip created (saved locally)');
+                    this.showNotification('Trip created (saved locally - cloud error)');
                 }
+            }).catch(err => {
+                console.error('✗ Unexpected error saving to Firebase:', err);
+                // Fallback
+                this.trips.push(trip);
+                this.saveToStorage();
+                this.renderTrips();
+                this.checkEmptyState();
+                this.showNotification('Trip created (saved locally - unexpected error)');
             });
         } else {
+            console.log('Saving trip locally (not signed in or DB missing)');
             // Save to LocalStorage only
             this.trips.push(trip);
             this.saveToStorage();
@@ -398,6 +443,20 @@ class TravelPlanApp {
         document.getElementById('trip-detail-budget').textContent =
             `Budget: $${this.currentTrip.budget.toLocaleString()}`;
 
+        // Show owner
+        const ownerEl = document.getElementById('trip-detail-owner');
+        if (ownerEl) {
+            if (this.currentTrip.ownerEmail) {
+                ownerEl.textContent = `Creator: ${this.currentTrip.ownerEmail}`;
+                ownerEl.style.display = 'inline';
+                ownerEl.style.marginLeft = '1rem';
+                ownerEl.style.color = 'var(--color-primary)';
+                ownerEl.style.fontSize = '0.9rem';
+            } else {
+                ownerEl.style.display = 'none';
+            }
+        }
+
         // Render itinerary
         this.renderItinerary();
 
@@ -411,13 +470,39 @@ class TravelPlanApp {
         this.switchView('trip-detail');
     }
 
-    deleteTrip(tripId) {
-        if (confirm('Are you sure you want to delete this trip?')) {
+    async deleteTrip(tripId) {
+        // Enforce ownership check
+        const trip = this.trips.find(t => t.id === tripId) || this.currentTrip;
+
+        if (trip && trip.ownerId) {
+            const currentUserId = window.firebaseAuth ?
+                (window.firebaseAuth.getCurrentUser() ? window.firebaseAuth.getCurrentUser().uid : null)
+                : null;
+
+            if (trip.ownerId !== currentUserId) {
+                alert('You can only delete trips that you created.');
+                return;
+            }
+        }
+
+        if (confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
+            // Delete from Firestore if connected
+            if (this.useFirestore && window.firebaseDB) {
+                this.showNotification('Deleting trip...');
+                const result = await window.firebaseDB.deleteTrip(tripId);
+                if (!result.success) {
+                    this.showNotification('Error deleting trip: ' + result.error);
+                    return;
+                }
+            }
+
+            // Delete locally
             this.trips = this.trips.filter(t => t.id !== tripId);
             this.saveToStorage();
             this.renderTrips();
             this.checkEmptyState();
             this.showNotification('Trip deleted');
+
             // Go back to trips view
             this.switchView('trips');
         }
@@ -437,7 +522,7 @@ class TravelPlanApp {
         this.showModal('edit-trip-modal');
     }
 
-    updateTrip() {
+    async updateTrip() {
         if (!this.currentTrip) return;
 
         const oldStartDate = this.currentTrip.startDate;
@@ -452,8 +537,35 @@ class TravelPlanApp {
         this.currentTrip.description = document.getElementById('edit-trip-description').value;
 
         // Check if dates changed
+        let daysChanged = false;
         if (oldStartDate !== this.currentTrip.startDate || oldEndDate !== this.currentTrip.endDate) {
             this.adjustTripDays();
+            daysChanged = true;
+        }
+
+        // Save to Firebase
+        if (this.useFirestore && window.firebaseDB) {
+            this.showNotification('Saving changes to cloud...');
+            const updates = {
+                name: this.currentTrip.name,
+                destination: this.currentTrip.destination,
+                startDate: this.currentTrip.startDate,
+                endDate: this.currentTrip.endDate,
+                budget: this.currentTrip.budget,
+                description: this.currentTrip.description
+            };
+
+            if (daysChanged) {
+                updates.days = this.currentTrip.days;
+            }
+
+            const result = await window.firebaseDB.updateTrip(this.currentTrip.id, updates);
+            if (!result.success) {
+                this.showNotification('Error saving to cloud: ' + result.error);
+                // Continue to save locally anyway
+            } else {
+                this.showNotification('Trip updated (synced to cloud)');
+            }
         }
 
         this.saveToStorage();
@@ -470,7 +582,6 @@ class TravelPlanApp {
         this.renderExpenses();
 
         this.closeModal('edit-trip-modal');
-        this.showNotification('Trip updated successfully!');
     }
 
     adjustTripDays() {
@@ -722,6 +833,15 @@ class TravelPlanApp {
                     </svg>
                     ${this.formatDate(trip.startDate)} - ${this.formatDate(trip.endDate)}
                 </div>
+                ${trip.ownerEmail ? `
+                <div class="trip-card-owner" style="font-size: 0.8rem; color: var(--color-text-tertiary); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    ${trip.ownerEmail}
+                </div>
+                ` : ''}
             </div>
             <div class="trip-card-stats">
                 <div class="trip-stat">
@@ -1111,6 +1231,13 @@ window.app = null;
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new TravelPlanApp();
 
+    // Check if already signed in (race condition handling)
+    if (window.firebaseAuth && window.firebaseAuth.isSignedIn()) {
+        console.log('App init: User already signed in, enabling sync');
+        window.app.enableFirebaseSync();
+        window.app.updateAuthUI(window.firebaseAuth.currentUser || window.firebase.auth().currentUser);
+    }
+
     // Add some demo data if no trips exist
     if (window.app.trips.length === 0) {
         addDemoTrip();
@@ -1190,15 +1317,17 @@ function addDemoTrip() {
         createdAt: new Date().toISOString()
     };
 
-    app.trips.push(demoTrip);
-    app.saveToStorage();
-    app.renderTrips();
-    app.checkEmptyState();
+    if (window.app) {
+        window.app.trips.push(demoTrip);
+        window.app.saveToStorage();
+        window.app.renderTrips();
+        window.app.checkEmptyState();
+    }
 }
 
 // Center map function
 function centerMap() {
-    if (app && app.map) {
-        app.centerMap();
+    if (window.app && window.app.map) {
+        window.app.centerMap();
     }
 }

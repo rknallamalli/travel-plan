@@ -204,12 +204,16 @@ document.addEventListener('DOMContentLoaded', () => {
         window.firebaseAuth.onAuthStateChanged((user) => {
             updateUIForAuthState(user);
 
-            if (user && app) {
+            if (user && window.app) {
                 // User signed in - switch to Firestore
-                app.enableFirebaseSync();
-            } else if (app) {
+                if (typeof window.app.enableFirebaseSync === 'function') {
+                    window.app.enableFirebaseSync();
+                }
+            } else if (window.app) {
                 // User signed out - use LocalStorage
-                app.disableFirebaseSync();
+                if (typeof window.app.disableFirebaseSync === 'function') {
+                    window.app.disableFirebaseSync();
+                }
             }
         });
     }

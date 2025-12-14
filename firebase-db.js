@@ -151,10 +151,11 @@ class FirebaseDatabase {
     }
 
     // Listen to shared trips
+    // Listen to shared trips
     listenToSharedTrips(callback) {
-        const userId = this.getCurrentUserId();
-        if (!userId) {
-            console.warn('User not signed in, cannot listen to shared trips');
+        const userEmail = window.firebaseAuth.getUserEmail();
+        if (!userEmail) {
+            console.warn('User email not found, cannot listen to shared trips');
             return null;
         }
 
@@ -163,8 +164,11 @@ class FirebaseDatabase {
             this.sharedTripsListener();
         }
 
+        console.log('Listening for shared trips for email:', userEmail);
+
+        // Query by 'collaborators' array containing user's email
         this.sharedTripsListener = this.db.collection('trips')
-            .where('sharedWith', 'array-contains', userId)
+            .where('collaborators', 'array-contains', userEmail)
             .onSnapshot(
                 (snapshot) => {
                     const trips = [];

@@ -122,7 +122,7 @@ class FirebaseAuth {
 
     // Check if user is signed in
     isSignedIn() {
-        return this.currentUser !== null;
+        return this.currentUser !== null || (this.auth && this.auth.currentUser !== null);
     }
 
     // Get user display name
